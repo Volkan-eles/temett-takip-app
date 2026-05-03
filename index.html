@@ -1133,31 +1133,59 @@ async function save(){
 
 // ─── SUPABASE AUTH & SYNC ─────────────────────────────────
 function switchAuthMode(mode) {
-  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-  document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+  const loginForm = document.getElementById('auth-form-login');
+  const signupForm = document.getElementById('auth-form-signup');
+  const loginBtn = document.getElementById('tab-btn-login');
+  const signupBtn = document.getElementById('tab-btn-signup');
+  
+  if(!loginForm || !signupForm) return;
+
+  loginForm.classList.remove('active');
+  signupForm.classList.remove('active');
+  loginBtn.classList.remove('active');
+  signupBtn.classList.remove('active');
+
   document.getElementById('auth-form-' + mode).classList.add('active');
   document.getElementById('tab-btn-' + mode).classList.add('active');
 }
 
 async function handleAuth(type) {
-  if(!sb || !sb.auth) { 
-    initSb();
-    if(!sb || !sb.auth) { toast('Bağlantı hatası, lütfen sayfayı yenileyin'); return; }
-  }
-  
-  const email = document.getElementById(type + '-email').value;
-  const password = document.getElementById(type + '-password').value;
-  
-  if(!email || !password) { toast('E-posta ve şifre girin'); return; }
-  if(type === 'signup' && password.length < 6) { toast('Şifre en az 6 karakter olmalıdır'); return; }
-
   try {
+    if(!sb || !sb.auth) { 
+      initSb();
+      if(!sb || !sb.auth) { 
+        alert('Supabase bağlantısı kurulamadı! Lütfen internet bağlantınızı kontrol edin veya reklam engelleyicileri kapatıp sayfayı yenileyin.'); 
+        return; 
+      }
+    }
+    
+    const emailEl = document.getElementById(type + '-email');
+    const passEl = document.getElementById(type + '-password');
+    
+    if(!emailEl || !passEl) {
+      console.error("Inputs not found for type:", type);
+      return;
+    }
+
+    const email = emailEl.value.trim();
+    const password = passEl.value;
+    
+    if(!email || !password) { toast('Lütfen tüm alanları doldurun'); return; }
+    if(type === 'signup' && password.length < 6) { toast('Şifre en az 6 karakter olmalıdır'); return; }
+
+    toast('İşlem yapılıyor...');
     let result;
     if(type === 'signup') {
       result = await sb.auth.signUp({ email, password });
       if(result.error) throw result.error;
-      toast('Kayıt başarılı! Giriş yapabilirsiniz.');
-      switchAuthMode('login');
+      
+      // Check if user is created but needs confirmation
+      if (result.data.user && result.data.user.identities && result.data.user.identities.length === 0) {
+        toast('Bu e-posta zaten kayıtlı olabilir.');
+      } else {
+        toast('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        switchAuthMode('login');
+      }
     } else {
       result = await sb.auth.signInWithPassword({ email, password });
       if(result.error) throw result.error;
@@ -1166,8 +1194,10 @@ async function handleAuth(type) {
       initSupabaseSession();
     }
   } catch(e) {
-    let msg = e.message;
+    console.error("Auth error:", e);
+    let msg = e.message || 'İşlem başarısız';
     if(msg === 'Email logins are disabled') msg = 'E-posta girişi kapalı. Lütfen Supabase panelinden aktif edin.';
+    if(msg === 'Invalid login credentials') msg = 'Hatalı e-posta veya şifre';
     toast('Hata: ' + msg);
   }
 }
