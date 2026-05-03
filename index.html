@@ -299,6 +299,21 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 #login-screen h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 #login-screen p { color: var(--t2); font-size: 15px; margin-bottom: 40px; max-width: 320px; line-height: 1.6; }
+
+/* ═══ ENHANCED STOCK DETAIL & LIST ═══ */
+.mini-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-left: 4px; display: inline-flex; align-items: center; }
+.mini-badge.up { background: #22c55e22; color: var(--grn); border: 1px solid #22c55e44; }
+.mini-badge.down { background: #ef444422; color: var(--red); border: 1px solid #ef444444; }
+.sd-section-title { font-size: 11px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.1em; margin: 18px 0 8px; }
+.sd-card { background: var(--bg3); border-radius: 12px; padding: 12px; border: 1px solid var(--bdr); margin-bottom: 12px; }
+.mini-tx-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
+.mini-tx-list::-webkit-scrollbar { width: 4px; }
+.mini-tx-list::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 10px; }
+.mini-tx-row { background: var(--bg2); padding: 10px; border-radius: 10px; border: 1px solid var(--bdr); font-size: 13px; }
+.tx-type { font-weight: 700; font-size: 10px; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; }
+.tx-type.buy { background: #3b82f622; color: var(--blue); }
+.tx-type.sell { background: #ef444422; color: var(--red); }
+.stock-row .mini-badge { vertical-align: middle; }
 #login-screen .auth-box { width: 100%; max-width: 360px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); padding: 32px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
 .auth-tabs { display: flex; gap: 8px; background: var(--bg); padding: 4px; border-radius: 12px; margin-bottom: 24px; }
 .auth-tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; background: none; color: var(--t2); font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -1802,17 +1817,22 @@ function renderStocks(){
     const pct=(totalVal>0?(item.value/totalVal)*100:0);
     const d=item.id?getStockData(item.id):null;
     const gainPct=d?d.potentialPnlPct:0;
-    const gainStr=d&&d.investedCost>0?
-      `<span style="color:${gainPct>=0?'var(--grn)':'var(--red)'};font-size:11px;margin-left:4px">${gainPct>=0?'+':''}${gainPct.toFixed(1)}%</span>`:'';
-    const lotsStr=d&&d.currentLots>0?`<span style="font-size:10px;color:var(--t3)">${fmtNum(d.currentLots,0)} lot · avg ₺${d.avgCostPerShare.toFixed(2)}</span>`:'';
+    
+    const gainCls = gainPct >= 0 ? 'up' : 'down';
+    const gainIcon = gainPct >= 0 ? '↑' : '↓';
+    
+    const lotsStr=d&&d.currentLots>0?`Ort: ₺${d.avgCostPerShare.toFixed(2)} · ${fmtNum(d.currentLots,0)} lot`:'';
+    
     const nameDisplay=hideNames?'<span style="display:inline-block;width:80px;height:12px;background:var(--bg3);border-radius:4px;vertical-align:middle"></span>':
-      `<span class="stock-ticker-lbl">${item.ticker}</span>${gainStr}`;
+      `<span class="stock-ticker-lbl">${item.ticker}</span> <span class="mini-badge ${gainCls}">${gainIcon} %${Math.abs(gainPct).toFixed(1)}</span>`;
+    
     const subDisplay=hideNames?'':
-      `<div class="stock-sub">${item.name} ${lotsStr}</div>`;
+      `<div class="stock-sub">${item.name} <span style="margin-left:6px; color:var(--t3); font-weight:400">${lotsStr}</span></div>`;
+    
     html+=`<div class="stock-row" onclick="${item.id?`showStockDetail('${item.id}')`:''}">`+
       `<div class="stock-dot" style="background:${item.color}"></div>`+
       `<div class="stock-name">${nameDisplay}${subDisplay}</div>`+
-      `<div class="stock-val-wrap"><div class="stock-val">${fmt(item.value)}</div><div class="stock-pct">(${fmtPct(pct,0)})</div></div>`+
+      `<div class="stock-val-wrap"><div class="stock-val">${fmt(item.value)}</div><div class="stock-pct">${pct.toFixed(1)}%</div></div>`+
       `</div>`;
   });
   list.innerHTML=html;
@@ -1827,19 +1847,84 @@ function showStockDetail(stockId){
   el.style.display='block';
   document.getElementById('sd-ticker').textContent=d.stock.ticker;
   document.getElementById('sd-name').textContent=d.stock.name+(d.stock.sector?` · ${d.stock.sector}`:'');
+  
+  const stockTx = transactions.filter(t => t.stockId === stockId).sort((a,b) => b.date.localeCompare(a.date));
+  const txHtml = stockTx.map(t => `
+    <div class="mini-tx-row">
+      <div style="display:flex; justify-content:space-between">
+        <span class="tx-type ${t.type}">${t.type==='buy'?'Alış':t.type==='sell'?'Satış':t.type}</span>
+        <span style="color:var(--t3); font-size:11px">${fmtDate(t.date)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:4px">
+        <span>${fmtNum(t.lots,2)} lot @ ₺${t.pricePerShare.toFixed(2)}</span>
+        <span style="font-weight:700">${fmt(t.totalCost)}</span>
+      </div>
+    </div>
+  `).join('');
+
   const divs=dividends.filter(dv=>dv.stockId===stockId);
   const totalDiv=divs.reduce((a,dv)=>a+dv.netAmount,0);
+  
   document.getElementById('sd-grid').innerHTML=`
-    <div class="sd-item"><label>Mevcut Lot</label><span>${fmtNum(d.currentLots,2)} lot</span></div>
-    <div class="sd-item"><label>Avg. Maliyet / hisse</label><span>${fmt(d.avgCostPerShare)}</span></div>
-    <div class="sd-item"><label>Anlık Fiyat</label><span>${d.currentPrice?fmt(d.currentPrice):'Girilmedi'}</span></div>
-    <div class="sd-item"><label>Güncel Değer</label><span>${fmt(d.currentValue)}</span></div>
-    <div class="sd-item"><label>Toplam Yatırım</label><span>${fmt(d.investedCost)}</span></div>
-    <div class="sd-item"><label>Potansiyel K/Z</label><span style="color:${d.potentialPnl>=0?'var(--grn)':'var(--red)'}">${(d.potentialPnl>=0?'+':'')+fmt(d.potentialPnl)}</span></div>
-    <div class="sd-item"><label>Toplam Net Temettü</label><span style="color:var(--teal)">${fmt(totalDiv)}</span></div>
-    <div class="sd-item"><label>Temettü Verimi</label><span style="color:var(--teal)">${fmtPct(d.divYield)}</span></div>
+    <div class="sd-card">
+      <div class="sd-item"><label>Portföydeki Pay</label><span style="font-weight:800">${fmtNum(d.currentLots,2)} lot</span></div>
+      <div class="sd-item"><label>Ortalama Maliyet</label><span style="color:var(--blue); font-weight:800">${fmt(d.avgCostPerShare)}</span></div>
+      <div class="sd-item"><label>Güncel Değer</label><span style="font-weight:800">${fmt(d.currentValue)}</span></div>
+      <div class="sd-item"><label>Kâr / Zarar</label><span style="color:${d.potentialPnl>=0?'var(--grn)':'var(--red)'}; font-weight:800">${(d.potentialPnl>=0?'+':'')+fmt(d.potentialPnl)} (${d.potentialPnlPct.toFixed(1)}%)</span></div>
+    </div>
+    
+    <div class="sd-section-title">📊 Analiz & Temettü</div>
+    <div class="sd-card">
+      <div class="sd-item"><label>Toplam Yatırım</label><span>${fmt(d.investedCost)}</span></div>
+      <div class="sd-item"><label>Toplam Net Temettü</label><span style="color:var(--teal)">${fmt(totalDiv)}</span></div>
+      <div class="sd-item"><label>Maliyet Verimi</label><span style="color:var(--teal)">${fmtPct(d.divYield)}</span></div>
+    </div>
+
+    <div class="sd-section-title">📉 Maliyet Düşürme (DCA)</div>
+    <div class="sd-card" style="border-style:dashed">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px">
+        <div><label style="font-size:10px; color:var(--t2)">Yeni Lot</label><input type="number" id="dca-new-lots" class="modal-input" style="width:100%" placeholder="0"></div>
+        <div><label style="font-size:10px; color:var(--t2)">Alış Fiyatı</label><input type="number" id="dca-new-price" class="modal-input" style="width:100%" placeholder="0.00"></div>
+      </div>
+      <button onclick="calculateDCAForStock('${stockId}')" class="btn-save" style="width:100%; padding:8px; font-size:12px; background:var(--blue)">Yeni Maliyeti Hesapla</button>
+      <div id="dca-stock-result" style="margin-top:10px; font-size:12px; text-align:center"></div>
+    </div>
+
+    <div class="sd-section-title">🕒 İşlem Geçmişi</div>
+    <div class="mini-tx-list">${txHtml || '<p style="font-size:12px; color:var(--t3); text-align:center">İşlem yok</p>'}</div>
   `;
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function calculateDCAForStock(stockId){
+  const d = getStockData(stockId);
+  const newLots = parseFloat(document.getElementById('dca-new-lots').value) || 0;
+  const newPrice = parseFloat(document.getElementById('dca-new-price').value) || 0;
+  if(newLots <= 0 || newPrice <= 0) return;
+  
+  const totalOldLots = d.currentLots * 100;
+  const totalOldCost = totalOldLots * d.avgCostPerShare;
+  
+  const totalNewLotsCount = newLots * 100;
+  const totalNewCost = totalNewLotsCount * newPrice;
+  
+  const combinedLots = totalOldLots + totalNewLotsCount;
+  const combinedCost = totalOldCost + totalNewCost;
+  const newAvg = combinedCost / combinedLots;
+  
+  const diff = newAvg - d.avgCostPerShare;
+  const diffPct = (diff / d.avgCostPerShare) * 100;
+  
+  const resEl = document.getElementById('dca-stock-result');
+  resEl.innerHTML = `
+    <div style="background:var(--bg3); padding:10px; border-radius:10px">
+      <div style="color:var(--t2)">Yeni Ortalama</div>
+      <div style="font-size:16px; font-weight:800; color:var(--blue)">₺${newAvg.toFixed(2)}</div>
+      <div style="font-size:11px; margin-top:4px; color:${diff <= 0 ? 'var(--grn)' : 'var(--red)'}">
+        Maliyet değişimi: ${diff >= 0 ? '+' : ''}₺${diff.toFixed(2)} (${diffPct.toFixed(1)}%)
+      </div>
+    </div>
+  `;
 }
 function closeStockDetail(){ document.getElementById('stock-detail').style.display='none'; currentStockDetail=null; }
 
