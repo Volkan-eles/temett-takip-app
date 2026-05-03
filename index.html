@@ -1817,9 +1817,18 @@ function renderStocks(){
   tg.className='port-gain'+(s.totalReturn<0?' neg':'');
 
   const list=document.getElementById('stock-list');
-  if(items.length===0){ list.innerHTML='<div class="empty-state"><div class="es-icon">📊</div><p>Henüz hisse eklenmedi</p></div>'; return; }
+  if(items.length===0){ 
+    list.innerHTML=`
+      <div style="text-align:center; padding:20px 0">
+        <button class="btn-save" style="width:auto; padding:10px 24px; margin-bottom:20px" onclick="openAddStock()">+ Yeni Hisse Ekle</button>
+      </div>
+      <div class="empty-state"><div class="es-icon">📊</div><p>Henüz hisse eklenmedi</p></div>`; 
+    return; 
+  }
 
-  let html='';
+  let html=`<div style="display:flex; justify-content:center; margin-bottom:16px">
+    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr)" onclick="openAddStock()">+ Hisse Ekle</button>
+  </div>`;
   items.forEach(item=>{
     const pct=(totalVal>0?(item.value/totalVal)*100:0);
     const d=item.id?getStockData(item.id):null;
@@ -1840,6 +1849,7 @@ function renderStocks(){
       `<div class="stock-dot" style="background:${item.color}"></div>`+
       `<div class="stock-name">${nameDisplay}${subDisplay}</div>`+
       `<div class="stock-val-wrap"><div class="stock-val">${fmt(item.value)}</div><div class="stock-pct">${pct.toFixed(1)}%</div></div>`+
+      (item.id ? `<button class="icon-btn" style="margin-left:8px; color:var(--red); font-size:14px" onclick="deleteStock('${item.id}', event)" title="Hisse Sil">🗑️</button>` : '') +
       `</div>`;
   });
   list.innerHTML=html;
@@ -2220,6 +2230,29 @@ function saveStock(){
   stocks.push({id:uuid(),ticker,name,sector,color:COLORS[colorIdx],currentPrice:initPrice});
   save(); closeModal('stock-overlay'); renderAll();
   toast(`${ticker} eklendi${initPrice>0?' (Fiyat: ₺'+initPrice.toFixed(2)+')'  :''} ✓`);
+}
+function deleteStock(id, e){
+  if(e) e.stopPropagation();
+  const s = stocks.find(x=>x.id===id);
+  if(!s) return;
+  
+  const txCount = transactions.filter(t=>t.stockId===id).length;
+  const divCount = dividends.filter(d=>d.stockId===id).length;
+  
+  let msg = `${s.ticker} hissesini silmek istediğinize emin misiniz?`;
+  if(txCount>0 || divCount>0){
+    msg = `${s.ticker} hissesine ait ${txCount} işlem ve ${divCount} temettü kaydı da silinecek. Emin misiniz?`;
+  }
+  
+  confirmDo('Hisse Sil', msg, () => {
+    stocks = stocks.filter(x=>x.id!==id);
+    transactions = transactions.filter(t=>t.stockId!==id);
+    dividends = dividends.filter(d=>d.stockId!==id);
+    save();
+    renderAll();
+    if(currentStockDetail === id) closeStockDetail();
+    toast(`${s.ticker} ve tüm verileri silindi ✓`);
+  });
 }
 
 // ─── TRANSACTION MODAL ────────────────────────────────────
