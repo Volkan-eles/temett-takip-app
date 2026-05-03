@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#0f172a">
 <meta name="description" content="BIST hisseleri için temettü takip ve portföy yönetimi uygulaması">
-<title>Temettü Takip — BIST Portföy</title>
+<title>BIST Temettü Takip</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2452/2452615.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const SB_URL = 'https://qbfejzpxtfyuikieolzn.supabase.co';
@@ -74,7 +77,59 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 #sample-banner .badge{background:var(--grn);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
 #sample-banner .btn-real{margin-left:auto;background:var(--grn);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 /* main scroll area */
-#main{flex:1;overflow-y:auto;overflow-x:hidden}
+/* background mesh */
+#bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg);
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: rgba(56, 189, 248, 0.15);
+  filter: blur(80px);
+  border-radius: 50%;
+  animation: move 20s infinite alternate;
+}
+.blob-2 {
+  background: rgba(45, 212, 191, 0.1);
+  width: 400px;
+  height: 400px;
+  right: -100px;
+  top: -100px;
+  animation-delay: -5s;
+}
+.blob-3 {
+  background: rgba(168, 85, 247, 0.08);
+  bottom: -150px;
+  left: 20%;
+  animation-delay: -10s;
+}
+@keyframes move {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(100px, 100px) scale(1.2); }
+}
+/* profit/loss modes for mesh */
+#bg-mesh.loss-mode .blob { background: rgba(248, 113, 113, 0.15); }
+#bg-mesh.loss-mode .blob-2 { background: rgba(251, 146, 60, 0.1); }
+
+/* skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bdr) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+  color: transparent !important;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+#main{flex:1;overflow-y:auto;overflow-x:hidden; position:relative;}
 /* tab panels */
 .tab-panel{display:none;padding:0 16px 100px}
 .tab-panel.active{display:block;animation:slideUp .4s cubic-bezier(0, 0, 0.2, 1)}
@@ -366,6 +421,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 </style>
 </head>
 <body>
+<div id="bg-mesh">
+  <div class="blob"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
 
 <!-- TOP BAR -->
 <div id="topbar">
@@ -744,6 +804,24 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
     </div>
   </div>
 
+  <div class="sec-title">Veri Yönetimi & Araçlar</div>
+  <div class="cards-2col" style="margin-bottom:14px">
+    <div class="metric-card" onclick="openModal('data-overlay')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div class="mc-label">İçe / Dışa Aktar</div>
+        <div class="mc-value small">Yedekle & Yükle</div>
+      </div>
+      <div style="font-size:20px; color:var(--blue)"><i data-lucide="database" style="width:20px; height:20px;"></i></div>
+    </div>
+    <div class="metric-card" onclick="openDripSimulator()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div class="mc-label">DRIP Simülatörü</div>
+        <div class="mc-value small">Kartopu Etkisi</div>
+      </div>
+      <div style="font-size:20px; color:var(--yel)"><i data-lucide="line-chart" style="width:20px; height:20px;"></i></div>
+    </div>
+  </div>
+
   <div class="sec-title">Uygulama Hakkında</div>
   <div class="info-card" style="text-align:center; padding:20px; border-style:dashed; margin-bottom:80px">
     <div style="font-size:32px; margin-bottom:10px">📈</div>
@@ -758,7 +836,34 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 <button class="fab" id="fab-btn" onclick="handleFab()"><i data-lucide="plus" style="width:24px; height:24px;"></i></button>
 
 <!-- TOAST -->
-<div id="toast"></div>
+<div id="toast" class="toast"></div>
+
+<!-- ═══════ MODAL: DATA MANAGEMENT ═══════ -->
+<div class="overlay" id="data-overlay">
+<div class="modal">
+  <div class="modal-header">
+    <div class="modal-title">Veri Yönetimi</div>
+    <button class="modal-close" onclick="closeModal('data-overlay')">×</button>
+  </div>
+  <div class="info-card" style="margin-bottom:16px; font-size:13px; color:var(--t2)">
+    Verilerinizi JSON formatında yedekleyebilir veya başka bir cihazdan yükleyebilirsiniz.
+  </div>
+  <div style="display:grid; grid-template-columns:1fr; gap:12px;">
+    <button class="btn-save" onclick="exportData()" style="padding:14px; background:var(--blue); display:flex; align-items:center; justify-content:center; gap:8px;">
+      <i data-lucide="download" style="width:18px; height:18px;"></i> Verileri Dışa Aktar (Yedekle)
+    </button>
+    <div style="position:relative">
+      <input type="file" id="import-file" style="display:none" onchange="importData(event)">
+      <button class="btn-save" onclick="document.getElementById('import-file').click()" style="width:100%; padding:14px; background:var(--bg3); border:1px solid var(--bdr); display:flex; align-items:center; justify-content:center; gap:8px;">
+        <i data-lucide="upload" style="width:18px; height:18px;"></i> Verileri İçe Aktar (Yükle)
+      </button>
+    </div>
+    <button class="btn-cancel" onclick="clearSampleData()" style="padding:14px; border-color:var(--red); color:var(--red); display:flex; align-items:center; justify-content:center; gap:8px;">
+      <i data-lucide="trash-2" style="width:18px; height:18px;"></i> Örnek Veriyi Temizle
+    </button>
+  </div>
+</div>
+</div>
 
 <!-- ═══════ MODAL: ADD STOCK ═══════ -->
 <div class="overlay" id="stock-overlay">
@@ -1148,9 +1253,34 @@ function togglePrivacy() {
 function toggleCurrency() {
   currencyMode = currencyMode === 'TRY' ? 'USD' : 'TRY';
   localStorage.setItem('bist_currency', currencyMode);
+  renderAll();
+  updateMeshBackground();
   const curBtn = document.getElementById('currency-toggle-btn');
   if(curBtn) { curBtn.textContent = currencyMode; curBtn.style.color = currencyMode==='USD'? 'var(--teal)' : 'var(--t1)'; }
   renderAll();
+}
+
+function updateMeshBackground() {
+  const s = getPortfolioSummary();
+  const mesh = document.getElementById('bg-mesh');
+  if(!mesh) return;
+  if(s.totalReturn < 0) mesh.classList.add('loss-mode');
+  else mesh.classList.remove('loss-mode');
+}
+
+function fireConfetti() {
+  confetti({
+    particleCount: 150,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#22c55e', '#38bdf8', '#eab308']
+  });
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered')).catch(err => console.log('SW Failed', err));
+  });
 }
 
 function renderPortfoliosList() {
@@ -2179,13 +2309,22 @@ function buildDividendsChart(){
   const years=Object.keys(byYear).sort();
   const paid=years.map(y=>byYear[y].paid);
   const expected=years.map(y=>byYear[y].expected);
+  
+  const gradPaid = ctx.createLinearGradient(0, 0, 0, 200);
+  gradPaid.addColorStop(0, '#14b8a6');
+  gradPaid.addColorStop(1, '#0d9488');
+
+  const gradExp = ctx.createLinearGradient(0, 0, 0, 200);
+  gradExp.addColorStop(0, '#f97316');
+  gradExp.addColorStop(1, '#ea580c');
+
   dvChart=new Chart(ctx,{
     type:'bar',
     data:{
       labels:years,
       datasets:[
-        {label:'Ödenen',data:paid,backgroundColor:'#14b8a6cc',borderRadius:6},
-        {label:'Beklenen',data:expected,backgroundColor:'#f97316cc',borderRadius:6}
+        {label:'Ödenen',data:paid,backgroundColor:gradPaid,borderRadius:8, barThickness: 20},
+        {label:'Beklenen',data:expected,backgroundColor:gradExp,borderRadius:8, barThickness: 20}
       ]
     },
     options:{
@@ -2372,7 +2511,20 @@ function renderTransactions(){
 }
 
 // ─── RENDER ALL ───────────────────────────────────────────
-function renderAll(){
+function renderAll(withSkeleton=false){
+  if(withSkeleton) {
+    const cards = document.querySelectorAll('.metric-card');
+    cards.forEach(c => c.classList.add('skeleton'));
+    setTimeout(() => {
+      cards.forEach(c => c.classList.remove('skeleton'));
+      actualRenderAll();
+    }, 500);
+  } else {
+    actualRenderAll();
+  }
+}
+
+function actualRenderAll() {
   const pn = document.getElementById('portfolio-name');
   if(pn) pn.textContent = portfolio.name || 'Portfolyum';
   renderOverview();
@@ -2382,7 +2534,8 @@ function renderAll(){
   renderTransactions();
   buildOverviewChart();
   updateTxFilter();
-  // New widgets (defined later in file, check they exist)
+  updateMeshBackground();
+  // New widgets
   if(typeof renderSectorWidget === 'function') renderSectorWidget();
   if(typeof renderHealthScore === 'function') renderHealthScore();
   if(typeof renderInflationWidget === 'function') renderInflationWidget();
@@ -2543,6 +2696,7 @@ function saveTransaction(){
   if(editingTxId){ const idx=transactions.findIndex(t=>t.id===editingTxId); if(idx>=0) transactions[idx]=data; }
   else{ transactions.push(data); }
   save(); closeModal('tx-overlay'); renderAll();
+  fireConfetti();
   toast(`İşlem ${editingTxId?'güncellendi':'kaydedildi'} ✓`);
   editingTxId=null;
 }
@@ -2620,6 +2774,7 @@ function saveDividend(){
   if(editingDivId){ const idx=dividends.findIndex(d=>d.id===editingDivId); if(idx>=0) dividends[idx]=data; }
   else{ dividends.push(data); }
   save(); closeModal('div-overlay'); renderAll();
+  fireConfetti();
   toast(`Temettü ${editingDivId?'güncellendi':'kaydedildi'} ✓`);
   editingDivId=null;
 }
@@ -3536,9 +3691,85 @@ function addMktStock(ticker,price,e){
   const colorIdx=stocks.length%COLORS.length;
   stocks.push({id:uuid(),ticker,name:ticker,sector:'',color:COLORS[colorIdx],currentPrice:price});
   save();
+  fireConfetti();
   toast(ticker+' portföye eklendi ✓');
   renderMarket();
   renderAll();
+}
+
+// ─── DRIP SIMULATOR ───────────────────────────────────────
+let dripChart = null;
+function openDripSimulator() {
+  openModal('drip-overlay');
+  runDripSim();
+}
+
+function runDripSim() {
+  const initial = parseNum(document.getElementById('drip-initial').value);
+  const monthly = parseNum(document.getElementById('drip-monthly').value);
+  const yieldPct = parseNum(document.getElementById('drip-yield').value) / 100;
+  const growthPct = parseNum(document.getElementById('drip-growth').value) / 100;
+  const years = parseInt(document.getElementById('drip-years').value);
+  
+  const results = [];
+  const labels = [];
+  let currentVal = initial;
+  let totalInvested = initial;
+  
+  results.push(currentVal);
+  labels.push('0. Yıl');
+  
+  for(let i=1; i<=years; i++) {
+    for(let m=1; m<=12; m++) {
+      currentVal += monthly;
+      totalInvested += monthly;
+      // monthly yield + monthly price growth (simplified)
+      const monthlyReturn = (yieldPct / 12) + (growthPct / 12);
+      currentVal *= (1 + monthlyReturn);
+    }
+    results.push(currentVal);
+    labels.push(i + '. Yıl');
+  }
+  
+  document.getElementById('drip-result').style.display = 'block';
+  document.getElementById('drip-final-val').textContent = fmt(currentVal, 0).replace(',00','');
+  document.getElementById('drip-total-invested').textContent = 'Toplam Yatırılan: ' + fmt(totalInvested, 0).replace(',00','');
+  
+  buildDripChart(labels, results);
+}
+
+function buildDripChart(labels, data) {
+  dripChart = destroyChart(dripChart);
+  const ctx = document.getElementById('drip-chart').getContext('2d');
+  
+  const grad = ctx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, 'rgba(234, 179, 8, 0.4)');
+  grad.addColorStop(1, 'rgba(234, 179, 8, 0.0)');
+
+  dripChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Portföy Değeri',
+        data: data,
+        borderColor: '#eab308',
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => '₺' + (v/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
 }
 
 // ─── INIT ─────────────────────────────────────────────────
@@ -3564,7 +3795,47 @@ function init(){
 init();
 </script>
 
-<!-- ═══════ MODAL: PIN LOCK ═══════ -->
+<!-- ═══════ MODAL: DRIP SIMULATOR ═══════ -->
+<div class="overlay" id="drip-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">DRIP (Kartopu) Simülatörü</div>
+      <button class="modal-close" onclick="closeModal('drip-overlay')">&times;</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div>
+        <label class="modal-label">Başlangıç Sermayesi (₺)</label>
+        <input type="number" id="drip-initial" class="modal-input" value="10000">
+      </div>
+      <div>
+        <label class="modal-label">Aylık Ek Yatırım (₺)</label>
+        <input type="number" id="drip-monthly" class="modal-input" value="1000">
+      </div>
+      <div>
+        <label class="modal-label">Temettü Verimi (%)</label>
+        <input type="number" id="drip-yield" class="modal-input" value="6" step="0.5">
+      </div>
+      <div>
+        <label class="modal-label">Yıllık Fiyat Artışı (%)</label>
+        <input type="number" id="drip-growth" class="modal-input" value="15">
+      </div>
+      <div style="grid-column: span 2">
+        <label class="modal-label">Süre (Yıl): <span id="drip-years-val">10</span></label>
+        <input type="range" id="drip-years" min="1" max="30" value="10" style="width:100%" oninput="document.getElementById('drip-years-val').textContent=this.value; runDripSim()">
+      </div>
+    </div>
+    <button class="btn-save" onclick="runDripSim()" style="background:var(--yel); color:#000">Simülasyonu Çalıştır</button>
+    
+    <div id="drip-result" style="margin-top:20px; display:none">
+       <div style="background:var(--bg3); padding:16px; border-radius:16px; margin-bottom:16px; text-align:center">
+         <div style="font-size:12px; color:var(--t2)">Tahmini Portföy Değeri</div>
+         <div id="drip-final-val" style="font-size:28px; font-weight:800; color:var(--yel); margin:4px 0">₺0</div>
+         <div id="drip-total-invested" style="font-size:11px; color:var(--t3)">Toplam Yatırılan: ₺0</div>
+       </div>
+       <div style="height:180px; position:relative"><canvas id="drip-chart"></canvas></div>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="pin-overlay" style="z-index:9999; background:#0f172ae6; backdrop-filter:blur(10px)">
   <div class="modal" style="margin:auto; display:flex; flex-direction:column; align-items:center; border:1px solid var(--bdr)">
     <div style="font-size:40px; margin-bottom:10px">🔒</div>

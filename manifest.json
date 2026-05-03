@@ -1,26 +1,17 @@
 {
-  "name": "BIST Portföy Takip",
-  "short_name": "BISTPortföy",
-  "description": "Borsa İstanbul hisse portföyü ve temettü takip uygulaması",
+  "name": "BIST Temettü Takip",
+  "short_name": "Temettü Takip",
+  "description": "Profesyonel Temettü Portföy Yönetimi",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f0c29",
-  "theme_color": "#6c63ff",
-  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2452/2452615.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["finance"],
-  "lang": "tr"
+  ]
 }
