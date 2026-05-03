@@ -14,12 +14,19 @@
 <script>
   const SB_URL = 'https://qbfejzpxtfyuikieolzn.supabase.co';
   const SB_KEY = 'sb_publishable_H1hnkpolit7DgO7vb7DHtA_8X3p9WLf';
-  let supabase;
-  try {
-    supabase = window.supabase.createClient(SB_URL, SB_KEY);
-  } catch(e) {
-    console.error("Supabase load error:", e);
+  let sb;
+  function initSb() {
+    try {
+      if (window.supabase) {
+        sb = window.supabase.createClient(SB_URL, SB_KEY);
+      } else {
+        console.error("Supabase SDK not loaded");
+      }
+    } catch(e) {
+      console.error("Supabase init error:", e);
+    }
   }
+  initSb();
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1084,13 +1091,17 @@ let currentUser = null;
 
 async function save(){
   localStorage.setItem('bist_app_data', JSON.stringify(appData));
-  if(currentUser) {
+  if(currentUser && sb) {
     supabaseSyncPush(); // Trigger auto-sync in background
   }
 }
 
 // ─── SUPABASE AUTH & SYNC ─────────────────────────────────
 async function handleAuth(type) {
+  if(!sb || !sb.auth) { 
+    initSb();
+    if(!sb || !sb.auth) { toast('Bağlantı hatası, lütfen sayfayı yenileyin'); return; }
+  }
   const email = document.getElementById('auth-email').value;
   const password = document.getElementById('auth-password').value;
   if(!email || !password) { toast('E-posta ve şifre girin'); return; }
@@ -1098,11 +1109,11 @@ async function handleAuth(type) {
   try {
     let result;
     if(type === 'signup') {
-      result = await supabase.auth.signUp({ email, password });
+      result = await sb.auth.signUp({ email, password });
       if(result.error) throw result.error;
       toast('Kayıt başarılı! E-postanızı kontrol edin.');
     } else {
-      result = await supabase.auth.signInWithPassword({ email, password });
+      result = await sb.auth.signInWithPassword({ email, password });
       if(result.error) throw result.error;
       toast('Giriş başarılı ✓');
     }
@@ -1120,8 +1131,10 @@ async function handleGoogleAuth() {
     alert('Google ile giriş yapmak için uygulamayı bir web sunucusu üzerinden (localhost veya web sitesi) açmanız gerekmektedir. Dosyayı doğrudan tarayıcıda açtığınızda Google güvenli yönlendirme yapamaz.');
     return;
   }
+  if(!sb || !sb.auth) initSb();
+  if(!sb || !sb.auth) { toast('Bağlantı hatası!'); return; }
   
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: window.location.origin
@@ -1136,14 +1149,16 @@ function skipLogin() {
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  if(sb) await sb.auth.signOut();
   currentUser = null;
   updateAuthUI();
   toast('Çıkış yapıldı');
 }
 
 async function initSupabaseSession() {
-  const { data: { session } } = await supabase.auth.getSession();
+  if(!sb || !sb.auth) initSb();
+  if(!sb || !sb.auth) return;
+  const { data: { session } } = await sb.auth.getSession();
   currentUser = session ? session.user : null;
   updateAuthUI();
   if(currentUser) {
@@ -1170,12 +1185,12 @@ function updateAuthUI() {
 }
 
 async function supabaseSyncPush(manual = false) {
-  if(!currentUser) return;
+  if(!currentUser || !sb) return;
   const statusEl = document.getElementById('sb-sync-status');
   if(statusEl && manual) statusEl.textContent = 'Yedekleniyor...';
 
   try {
-    const { error } = await supabase
+    const { error } = await sb
       .from('user_portfolios')
       .upsert({ id: currentUser.id, data: appData, updated_at: new Date() });
     
@@ -1190,9 +1205,9 @@ async function supabaseSyncPush(manual = false) {
 }
 
 async function supabaseSyncPull() {
-  if(!currentUser) return;
+  if(!currentUser || !sb) return;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('user_portfolios')
       .select('data')
       .eq('id', currentUser.id)
