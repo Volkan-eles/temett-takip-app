@@ -418,6 +418,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
       <div class="mc-label"><span class="info-icon" data-tip="Yaklaşan 30 gün içinde ex-date olan temettüler için hatırlatma aktif">ⓘ</span> Hatırlatmalar</div>
       <div class="mc-value teal" id="ov-reminders">-</div>
     </div>
+    <div class="metric-card" style="grid-column:span 2; margin-top:4px; border-style:dashed; border-color:var(--blue);">
+      <div class="mc-label" style="color:var(--blue); font-weight:700;">📅 Bu Ayki Yatırım (Alım)</div>
+      <div class="mc-value" id="ov-monthly-investment">₺0,00</div>
+    </div>
   </div>
 
   <!-- ── ANALYSIS WIDGETS ── -->
@@ -1848,6 +1852,12 @@ function renderOverview(){
   realEl.textContent=(s.realizedPnl>=0?'🟢 ':'🔴 ')+fmtPct(s.realPct);
   realEl.className='ic-pct'+(s.realizedPnl<0?' neg':'');
   document.getElementById('ov-real-val').textContent=fmt(Math.abs(s.realizedPnl));
+
+  // Bu Ayki Yatırım (Alım)
+  const nowStr = today().substring(0, 7); // "YYYY-MM"
+  const mInv = transactions.filter(t => t.type === 'buy' && t.date.startsWith(nowStr)).reduce((a, t) => a + t.totalCost, 0);
+  const miEl = document.getElementById('ov-monthly-investment');
+  if(miEl) miEl.textContent = fmt(mInv);
 
   // Goals
   document.getElementById('goal-value-curr').textContent=fmt(s.totalValue,0).replace(',00','');
