@@ -2482,9 +2482,10 @@ function deleteStock(id, e){
   }
   
   confirmDo('Hisse Sil', msg, () => {
-    stocks = stocks.filter(x=>x.id!==id);
-    transactions = transactions.filter(t=>t.stockId!==id);
-    dividends = dividends.filter(d=>d.stockId!==id);
+    portfolio.stocks = portfolio.stocks.filter(x=>x.id!==id);
+    portfolio.transactions = portfolio.transactions.filter(t=>t.stockId!==id);
+    portfolio.dividends = portfolio.dividends.filter(d=>d.stockId!==id);
+    syncGlobals();
     save();
     renderAll();
     if(currentStockDetail === id) closeStockDetail();
@@ -2563,7 +2564,8 @@ function editTransaction(id){
 function deleteTransaction(id){
   const t=transactions.find(tx=>tx.id===id);
   confirmDo('İşlemi Sil',`${t?.ticker} işlemi kalıcı olarak silinecek.`,()=>{
-    transactions=transactions.filter(tx=>tx.id!==id);
+    portfolio.transactions=portfolio.transactions.filter(tx=>tx.id!==id);
+    syncGlobals();
     save(); renderAll(); toast('İşlem silindi');
   });
 }
@@ -2639,7 +2641,8 @@ function editDividend(id){
 function deleteDividend(id){
   const d=dividends.find(dv=>dv.id===id);
   confirmDo('Temettüyü Sil',`${d?.ticker} temettüsü kalıcı olarak silinecek.`,()=>{
-    dividends=dividends.filter(dv=>dv.id!==id);
+    portfolio.dividends=portfolio.dividends.filter(dv=>dv.id!==id);
+    syncGlobals();
     save(); renderAll(); toast('Temettü silindi');
   });
 }
@@ -2757,10 +2760,14 @@ function importData(evt){
     try{
       const data=JSON.parse(e.target.result);
       if(data.stocks&&data.transactions&&data.dividends){
-        portfolio=data.portfolio||portfolio;
-        stocks=data.stocks;
-        transactions=data.transactions;
-        dividends=data.dividends;
+        // Ensure appData structure is updated
+        const p = appData.portfolios.find(x => x.id === appData.activeId) || appData.portfolios[0];
+        if(data.portfolio) Object.assign(p, data.portfolio);
+        p.stocks = data.stocks;
+        p.transactions = data.transactions;
+        p.dividends = data.dividends;
+        
+        syncGlobals();
         localStorage.removeItem('bist_sample');
         save(); renderAll();
         document.getElementById('sample-banner').classList.remove('show');
