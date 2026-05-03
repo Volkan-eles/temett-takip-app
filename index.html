@@ -358,6 +358,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
   <button class="tab-btn" onclick="switchTab('stocks',this)">Hisseler</button>
   <button class="tab-btn" onclick="switchTab('dividends',this)">Temettüler</button>
   <button class="tab-btn" onclick="switchTab('transactions',this)">İşlemler</button>
+  <button class="tab-btn" onclick="switchTab('summary',this)">📊 Özet</button>
   <button class="tab-btn" onclick="switchTab('market',this)">📈 Piyasa</button>
   <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Ayarlar</button>
 </div>
@@ -588,7 +589,20 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
   <div class="tx-list" id="tx-list"></div>
 </div>
 
-<!-- ═══════ TAB 5: PİYASA ═══════ -->
+<!-- ═══════ TAB 5: AYLIK ÖZET ═══════ -->
+<div id="tab-summary" class="tab-panel">
+  <div class="stocks-header" style="padding-bottom:12px">
+    <div class="port-label">AYLIK YATIRIM VE TEMETTÜ ÖZETİ</div>
+  </div>
+  
+  <div id="monthly-summary-container" style="padding-bottom:100px;">
+    <div class="metric-card" style="margin-bottom:16px;">
+      <div style="color:var(--t3); font-size:12px; text-align:center; padding:20px;">Veriler yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 6: PİYASA ═══════ -->
 <div id="tab-market" class="tab-panel">
   <div class="stocks-header" style="padding-bottom:4px">
     <div class="port-label">CANLI PİYASA VERİLERİ</div>
@@ -2229,6 +2243,7 @@ function renderAll(){
   if(typeof checkDividendsSoon === 'function') checkDividendsSoon();
   if(typeof renderWatchlist === 'function') renderWatchlist();
   if(typeof updateQuickAddStocks === 'function') updateQuickAddStocks();
+  if(typeof renderMonthlySummary === 'function') renderMonthlySummary();
 }
 
 function updateTxFilter(){
@@ -3107,6 +3122,66 @@ function checkDividendsSoon(){
   } else {
     banner.style.display = 'none';
   }
+}
+
+function renderMonthlySummary() {
+  const container = document.getElementById('monthly-summary-container');
+  if(!container) return;
+  
+  // Aggregate data by YYYY-MM
+  const monthsMap = {};
+  
+  // Transactions (Buys)
+  transactions.forEach(t => {
+    if(t.type !== 'buy') return;
+    const m = t.date.substring(0, 7);
+    if(!monthsMap[m]) monthsMap[m] = { invest: 0, dividend: 0 };
+    monthsMap[m].invest += t.totalCost;
+  });
+  
+  // Dividends (Paid)
+  dividends.forEach(d => {
+    if(d.status !== 'paid') return;
+    const date = d.paymentDate || d.exDate;
+    if(!date) return;
+    const m = date.substring(0, 7);
+    if(!monthsMap[m]) monthsMap[m] = { invest: 0, dividend: 0 };
+    monthsMap[m].dividend += d.netAmount;
+  });
+  
+  const sortedMonths = Object.keys(monthsMap).sort().reverse();
+  
+  if(sortedMonths.length === 0) {
+    container.innerHTML = '<div class="metric-card"><div style="color:var(--t3); font-size:12px; text-align:center; padding:20px;">Henüz işlem veya temettü verisi yok.</div></div>';
+    return;
+  }
+  
+  let html = '';
+  sortedMonths.forEach(m => {
+    const [y, mm] = m.split('-');
+    const data = monthsMap[m];
+    const monthName = MONTHS_TR[parseInt(mm)];
+    
+    html += `
+      <div class="metric-card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:800; color:var(--teal);">${monthName} ${y}</div>
+          <div style="font-size:11px; color:var(--t3); font-weight:700;">Aylık Rapor</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div style="background:var(--bg3); padding:10px; border-radius:10px;">
+            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">📥 Toplam Alım</div>
+            <div style="font-size:14px; font-weight:700; color:var(--blue);">${fmt(data.invest)}</div>
+          </div>
+          <div style="background:var(--bg3); padding:10px; border-radius:10px;">
+            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">💰 Temettü Geliri</div>
+            <div style="font-size:14px; font-weight:700; color:var(--grn);">${fmt(data.dividend)}</div>
+          </div>
+        </div>
+      </div>`;
+  });
+  
+  container.innerHTML = html;
 }
 
 function openCompareModal(){
