@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -31,21 +32,23 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
---bg:  #0a0f1e;
---bg2: rgba(30, 41, 59, 0.7);
---bg3: rgba(51, 65, 85, 0.5);
---teal:#14b8a6;
---blue:#38bdf8;
---ora: #f97316;
---grn: #22c55e;
---red: #ef4444;
---yel: #eab308;
---t1:  #f8fafc;
---t2:  #94a3b8;
---t3:  #64748b;
---bdr: rgba(255, 255, 255, 0.1);
---glass: blur(12px) saturate(180%);
---r:   16px;
+  --bg:  #0f172a;
+  --bg2: rgba(30, 41, 59, 0.7);
+  --bg3: rgba(51, 65, 85, 0.5);
+  --teal: #2dd4bf;
+  --blue: #38bdf8;
+  --ora:  #fb923c;
+  --grn:  #4ade80;
+  --red:  #f87171;
+  --yel:  #fbbf24;
+  --t1:   #f8fafc;
+  --t2:   #cbd5e1;
+  --t3:   #94a3b8;
+  --bdr:  rgba(255, 255, 255, 0.1);
+  --glass: blur(12px) saturate(160%);
+  --r:    16px;
+  --shd:  0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --grad: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
 }
 html,body{height:100%;overflow:hidden}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);display:flex;flex-direction:column;overflow:hidden}
@@ -58,8 +61,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 #portfolio-name-wrap{display:flex;align-items:center;gap:6px;cursor:pointer}
 #portfolio-name{font-size:20px;font-weight:700}
 #topbar-right{display:flex;align-items:center;gap:12px}
-.icon-btn{background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:.2s}
-.icon-btn:hover{color:var(--t1);background:var(--bg3)}
+.icon-btn{background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:12px;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1)}
+.icon-btn:hover{color:var(--teal);background:var(--bg3);transform:translateY(-2px)}
 /* tabs */
 #tabbar{display:flex;overflow-x:auto;padding:4px 16px 8px;gap:4px;flex-shrink:0;scrollbar-width:none;position:relative;z-index:100}
 #tabbar::-webkit-scrollbar{display:none}
@@ -74,8 +77,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 #main{flex:1;overflow-y:auto;overflow-x:hidden}
 /* tab panels */
 .tab-panel{display:none;padding:0 16px 100px}
-.tab-panel.active{display:block;animation:fadeIn .2s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab-panel.active{display:block;animation:slideUp .4s cubic-bezier(0, 0, 0.2, 1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 /* portfolio header on overview */
 .port-header{text-align:center;padding:16px 0 8px}
 .port-label{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
@@ -88,9 +91,31 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 .tog-btn{flex:1;padding:8px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg2);color:var(--t2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:.2s}
 .tog-btn.active{background:var(--bg3);color:var(--t1);border-color:var(--blue)}
 /* metric cards 2x2 */
-.cards-2x2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
-.metric-card{background:var(--bg2); border-radius:var(--r); padding:14px; border:1px solid var(--bdr); transition:.2s; backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass); }
-.metric-card:hover{transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.4); border-color:rgba(255,255,255,0.2); }
+.cards-2x2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.metric-card{
+  background: var(--bg2);
+  border-radius: var(--r);
+  padding: 16px;
+  border: 1px solid var(--bdr);
+  position: relative;
+  overflow: hidden;
+  transition: all .4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  box-shadow: var(--shd);
+}
+.metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad);
+  pointer-events: none;
+}
+.metric-card:hover{
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6);
+  border-color: rgba(255,255,255,0.2);
+}
 .mc-label{font-size:12px; color:var(--t2); margin-bottom:6px; display:flex; align-items:center; gap:4px; }
 .mc-value{font-size:22px; font-weight:700; color:var(--t1); }
 .mc-value.green{color:var(--grn); text-shadow: 0 0 10px rgba(34,197,94,0.3); }
@@ -201,8 +226,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 .fab:active{transform:scale(.96)}
 /* modal */
 .overlay{position:fixed;inset:0;background:#0009;backdrop-filter:blur(6px);z-index:3000;display:none;align-items:flex-end;justify-content:center}
-.overlay.open{display:flex;animation:fadeIn .2s ease}
-.modal{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:20px}
+.overlay.open{display:flex;animation:blurIn .3s ease}
+@keyframes blurIn{from{opacity:0;backdrop-filter:blur(0)}to{opacity:1;backdrop-filter:blur(6px)}}
+.modal{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;border:1px solid var(--bdr);transform-origin:bottom;animation:modalUp .4s cubic-bezier(0.34, 1.56, 0.64, 1)}
+@keyframes modalUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .modal-title{font-size:17px;font-weight:700}
 .modal-close{background:none;border:none;color:var(--t2);font-size:24px;cursor:pointer;padding:0;line-height:1}
@@ -344,23 +371,23 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 <div id="topbar">
   <div id="portfolio-name-wrap" onclick="openModal('port-switch-overlay'); renderPortfoliosList();">
     <span id="portfolio-name">Portföyüm</span>
-    <span style="color:var(--t2);font-size:18px">⌄</span>
+    <span style="color:var(--t2);font-size:18px"><i data-lucide="chevron-down" style="width:18px; height:18px;"></i></span>
   </div>
-  <div id="topbar-right" style="position:relative; z-index:101">
-    <button class="icon-btn" onclick="openModal('prices-overlay')" title="Fiyat Güncelle">💱</button>
-    <button class="icon-btn" onclick="document.querySelectorAll('.tab-btn')[5].click()" title="Ayarlar">⚙️</button>
+  <div id="topbar-right">
+    <button class="icon-btn" onclick="openModal('prices-overlay')" title="Fiyat Güncelle"><i data-lucide="refresh-cw" style="width:20px; height:20px;"></i></button>
+    <button class="icon-btn" onclick="document.querySelectorAll('.tab-btn')[6].click()" title="Ayarlar"><i data-lucide="settings" style="width:20px; height:20px;"></i></button>
   </div>
 </div>
 
 <!-- TAB BAR -->
 <div id="tabbar">
-  <button class="tab-btn active" onclick="switchTab('overview',this)">Genel Bakış</button>
-  <button class="tab-btn" onclick="switchTab('stocks',this)">Hisseler</button>
-  <button class="tab-btn" onclick="switchTab('dividends',this)">Temettüler</button>
-  <button class="tab-btn" onclick="switchTab('transactions',this)">İşlemler</button>
-  <button class="tab-btn" onclick="switchTab('summary',this)">📊 Özet</button>
-  <button class="tab-btn" onclick="switchTab('market',this)">📈 Piyasa</button>
-  <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Ayarlar</button>
+  <button class="tab-btn active" onclick="switchTab('overview',this)"><i data-lucide="layout-dashboard" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Genel Bakış</button>
+  <button class="tab-btn" onclick="switchTab('stocks',this)"><i data-lucide="pie-chart" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Hisseler</button>
+  <button class="tab-btn" onclick="switchTab('dividends',this)"><i data-lucide="banknote" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Temettüler</button>
+  <button class="tab-btn" onclick="switchTab('transactions',this)"><i data-lucide="history" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> İşlemler</button>
+  <button class="tab-btn" onclick="switchTab('summary',this)"><i data-lucide="bar-chart-3" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Özet</button>
+  <button class="tab-btn" onclick="switchTab('market',this)"><i data-lucide="trending-up" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Piyasa</button>
+  <button class="tab-btn" onclick="switchTab('settings',this)"><i data-lucide="settings" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Ayarlar</button>
 </div>
 
 <!-- SAMPLE BANNER -->
@@ -386,15 +413,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 
   <!-- NOTIFICATION BANNER -->
   
-  <div class="sec-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleHeatmap()">
-    <span style="font-size:14px;">🔥 Isı Haritası (Heatmap)</span>
-    <span id="heatmap-toggle-icon" style="font-size:12px; color:var(--t2);">Göster/Gizle ▼</span>
+  <div class="sec-title" style="display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:14px; cursor:pointer;" onclick="toggleHeatmap()">🔥 Isı Haritası <span id="heatmap-toggle-icon" style="font-size:11px; color:var(--t2); font-weight:normal; margin-left:4px;">(Gizle ▲)</span></span>
+    <div id="heatmap-mode-btns" style="display:flex; gap:6px; background:var(--bg3); padding:3px; border-radius:8px;">
+      <button onclick="setHeatmapMode('price')" id="hm-mode-price" style="border:none; background:var(--bg2); color:var(--t1); font-size:10px; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;">Fiyat</button>
+      <button onclick="setHeatmapMode('yield')" id="hm-mode-yield" style="border:none; background:none; color:var(--t2); font-size:10px; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:500;">Verim</button>
+    </div>
   </div>
   <div class="heatmap-container" id="overview-heatmap"></div>
 
-  <div class="toggle-row">
-    <button class="tog-btn active" id="chart-annual-btn" onclick="setChartMode('annual')">Yıllık</button>
-    <button class="tog-btn" id="chart-monthly-btn" onclick="setChartMode('monthly')">Aylık</button>
+  <div class="toggle-row" style="background:var(--bg3); padding:4px; border-radius:12px;">
+    <button class="tog-btn active" id="chart-annual-btn" onclick="setChartMode('annual')" style="border:none; border-radius:8px;">Yıllık</button>
+    <button class="tog-btn" id="chart-monthly-btn" onclick="setChartMode('monthly')" style="border:none; border-radius:8px;">Aylık</button>
+    <button class="tog-btn" id="chart-bench-btn" onclick="toggleBenchmark()" style="border:none; border-radius:8px; font-size:12px; flex:0.6; background:none; border:1px solid transparent;">BIST 100</button>
   </div>
   <div class="chart-wrap"><canvas id="overview-chart"></canvas></div>
   <div class="chart-legend">
@@ -425,7 +456,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
     </div>
   </div>
 
-  <!-- ── ANALYSIS WIDGETS ── -->
+  <div id="smart-insights" style="margin-bottom:16px;"></div>
+
   <div id="inflation-widget"></div>
   <div id="health-widget"></div>
   <div class="sector-wrap-card">
@@ -520,6 +552,28 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
       <button class="close-sd" onclick="closeStockDetail()">×</button>
     </div>
     <div class="sd-grid" id="sd-grid"></div>
+
+    <!-- DCA CALCULATOR -->
+    <div class="sd-section-title" style="margin-top:20px; color:var(--blue);"><i data-lucide="calculator" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"></i> Maliyet Düşürme (DCA) Hesaplayıcı</div>
+    <div class="metric-card" style="margin-top:8px; background:rgba(30, 41, 59, 0.4); border-color:var(--blue);">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group" style="margin:0">
+          <label style="font-size:9px">Alım Fiyatı</label>
+          <input type="tel" id="dca-price" placeholder="Fiyat" oninput="runDCA()" style="padding:6px; font-size:12px;">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label style="font-size:9px">Alınacak Lot</label>
+          <input type="tel" id="dca-lots" placeholder="Lot" oninput="runDCA()" style="padding:6px; font-size:12px;">
+        </div>
+      </div>
+      <div id="dca-result-box" style="margin-top:10px; display:none;">
+        <div class="dca-result">
+          <div class="dca-row"><span>Yeni Toplam Lot</span><span id="dca-new-lots" style="font-weight:700;">-</span></div>
+          <div class="dca-row"><span>Yeni Ortalama</span><span id="dca-new-avg" style="font-weight:700; color:var(--teal);">-</span></div>
+          <div class="dca-row"><span>Toplam Ek Maliyet</span><span id="dca-extra-cost" style="font-weight:700;">-</span></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -701,7 +755,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 </div><!-- #main -->
 
 <!-- FAB -->
-<button class="fab" id="fab-btn" onclick="handleFab()">+</button>
+<button class="fab" id="fab-btn" onclick="handleFab()"><i data-lucide="plus" style="width:24px; height:24px;"></i></button>
 
 <!-- TOAST -->
 <div id="toast"></div>
@@ -1188,10 +1242,18 @@ function parseNum(v){
 let currentUser = null;
 
 async function save(){
-  localStorage.setItem('bist_app_data', JSON.stringify(appData));
-  if(currentUser && sb) {
-    supabaseSyncPush(); // Trigger auto-sync in background
+  localStorage.setItem('bist_data', JSON.stringify(appData));
+  if(localStorage.getItem('bist_sync_key') && localStorage.getItem('bist_sync_bin')){
+    debounceSync();
   }
+}
+
+let syncTimeout;
+function debounceSync(){
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    syncPush().then(() => console.log('Auto-synced to cloud')).catch(e => console.warn('Auto-sync failed', e));
+  }, 5000);
 }
 
 // ─── SUPABASE AUTH & SYNC ─────────────────────────────────
@@ -1617,6 +1679,22 @@ let currentStockDetail=null;
 let confirmCb=null;
 let editingDivId=null, editingTxId=null;
 let goalType=null;
+let showBenchmark=localStorage.getItem('bist_show_benchmark')==='true';
+const BIST_HISTORY={
+  2019:1144, 2020:1476, 2021:1857, 2022:5509, 2023:7470, 2024:10500, 2025:12200, 2026:13119
+};
+
+function toggleBenchmark(){
+  showBenchmark=!showBenchmark;
+  localStorage.setItem('bist_show_benchmark',showBenchmark);
+  const btn=document.getElementById('chart-bench-btn');
+  if(btn){
+    btn.style.background=showBenchmark?'var(--bg2)':'none';
+    btn.style.borderColor=showBenchmark?'var(--blue)':'transparent';
+    btn.style.color=showBenchmark?'var(--t1)':'var(--t2)';
+  }
+  buildOverviewChart();
+}
 
 function destroyChart(c){ if(c){ c.destroy(); return null; } return null; }
 
@@ -1669,14 +1747,31 @@ function buildOverviewChart(){
     }
   }
 
+  const datasets=[
+    {label:'Toplam Değer',data:valueData,borderColor:'#38bdf8',backgroundColor:'#38bdf811',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6,borderWidth:2},
+    {label:'Toplam Maliyet',data:costData,borderColor:'#f97316',borderDash:[6,4],fill:false,tension:.4,pointRadius:3,pointHoverRadius:6,borderWidth:2,backgroundColor:'#f9731611'}
+  ];
+
+  if(showBenchmark && chartMode==='annual'){
+    const benchData=[];
+    const firstVal=valueData[0]||0;
+    const firstYear=parseInt(labels[0]);
+    const firstBench=BIST_HISTORY[firstYear]||1000;
+    labels.forEach(yr=>{
+      const y=parseInt(yr);
+      const b=BIST_HISTORY[y]||firstBench;
+      // Normalizing BIST 100 to start at portfolio's first value
+      const normalized=(b/firstBench)*firstVal;
+      benchData.push(normalized);
+    });
+    datasets.push({label:'BIST 100 (Normaliz)',data:benchData,borderColor:'#94a3b8',borderDash:[2,2],fill:false,tension:.4,pointRadius:0,borderWidth:1.5});
+  }
+
   ovChart=new Chart(ctx,{
     type:'line',
     data:{
       labels,
-      datasets:[
-        {label:'Toplam Değer',data:valueData,borderColor:'#38bdf8',backgroundColor:'#38bdf811',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6,borderWidth:2},
-        {label:'Toplam Maliyet',data:costData,borderColor:'#f97316',borderDash:[6,4],fill:false,tension:.4,pointRadius:3,pointHoverRadius:6,borderWidth:2,backgroundColor:'#f9731611'}
-      ]
+      datasets
     },
     options:{
       responsive:true,maintainAspectRatio:false,
@@ -1759,6 +1854,23 @@ function getSectorItems(){
 
 // ─── HEATMAP RENDER ──────────────────────────────────────
 let heatmapVisible = localStorage.getItem('bist_heatmap_visible') === 'true';
+let heatmapMode = localStorage.getItem('bist_heatmap_mode') || 'price';
+
+function setHeatmapMode(m){
+  heatmapMode = m;
+  localStorage.setItem('bist_heatmap_mode', m);
+  const pb = document.getElementById('hm-mode-price');
+  const yb = document.getElementById('hm-mode-yield');
+  if(pb && yb){
+    pb.style.background = m==='price'?'var(--bg2)':'none';
+    pb.style.color = m==='price'?'var(--t1)':'var(--t2)';
+    pb.style.fontWeight = m==='price'?'600':'500';
+    yb.style.background = m==='yield'?'var(--bg2)':'none';
+    yb.style.color = m==='yield'?'var(--t1)':'var(--t2)';
+    yb.style.fontWeight = m==='yield'?'600':'500';
+  }
+  renderHeatmap();
+}
 
 function toggleHeatmap() {
   heatmapVisible = !heatmapVisible;
@@ -1770,8 +1882,10 @@ function getStockSummaries() {
   const sum = [];
   for(const s of stocks) {
     const d = getStockData(s.id);
-    if(d && d.currentValue > 0) {
-      sum.push({ticker: s.ticker, val: d.currentValue, cost: d.investedCost});
+    if(d && (d.currentLots > 0 || d.investedCost > 0)) {
+      const yearDiv = dividends.filter(dv => dv.stockId === s.id && dv.year === currentYear()).reduce((a,dv)=>a+dv.netAmount, 0);
+      const yieldOnCost = d.investedCost > 0 ? (yearDiv / d.investedCost) * 100 : 0;
+      sum.push({ticker: s.ticker, val: d.currentValue, cost: d.investedCost, yieldOnCost: yieldOnCost});
     }
   }
   return sum;
@@ -1794,15 +1908,28 @@ function renderHeatmap() {
   data.sort((a,b) => b.val - a.val);
   
   data.forEach(s => {
-    if(s.val <= 0) return;
+    if(s.val <= 0 && s.cost <= 0) return;
     const w = (s.val / totalVal) * 100;
-    const pct = s.cost > 0 ? (s.val - s.cost) / s.cost : 0;
     
     let bg = '#334155';
-    if (pct > 0.05) bg = '#15803d'; // strong green
-    else if (pct > 0) bg = '#22c55e'; // light green
-    else if (pct < -0.05) bg = '#b91c1c'; // strong red
-    else if (pct < 0) bg = '#ef4444'; // light red
+    let label2 = '';
+    
+    if(heatmapMode === 'price') {
+      const pct = s.cost > 0 ? (s.val - s.cost) / s.cost : 0;
+      if (pct > 0.05) bg = '#15803d'; 
+      else if (pct > 0) bg = '#22c55e'; 
+      else if (pct < -0.05) bg = '#b91c1c'; 
+      else if (pct < 0) bg = '#ef4444'; 
+      label2 = fmtPct(pct*100);
+    } else {
+      // Yield on Cost mode
+      const yoc = s.yieldOnCost;
+      if (yoc > 8) bg = '#0d9488'; // teal
+      else if (yoc > 4) bg = '#14b8a6'; 
+      else if (yoc > 0) bg = '#5eead4';
+      else bg = '#475569';
+      label2 = yoc.toFixed(1) + '% Verim';
+    }
     
     const div = document.createElement('div');
     div.className = 'hm-cell';
@@ -1814,7 +1941,7 @@ function renderHeatmap() {
       if(privacyMode) {
         div.innerHTML = `${s.ticker}<small>***</small>`;
       } else {
-        div.innerHTML = `${s.ticker}<small>%${w.toFixed(1)}<br>${fmtPct(pct*100)}</small>`;
+        div.innerHTML = `${s.ticker}<small>%${w.toFixed(1)}<br>${label2}</small>`;
       }
     } else {
       div.textContent = w > 0.5 ? s.ticker : '';
@@ -1865,6 +1992,9 @@ function renderOverview(){
   realEl.className='ic-pct'+(s.realizedPnl<0?' neg':'');
   document.getElementById('ov-real-val').textContent=fmt(Math.abs(s.realizedPnl));
 
+  // Smart Insights
+  renderSmartInsights(s);
+
   // Bu Ayki Yatırım (Alım)
   const nowStr = today().substring(0, 7); // "YYYY-MM"
   const mInv = transactions.filter(t => t.type === 'buy' && t.date.startsWith(nowStr)).reduce((a, t) => a + t.totalCost, 0);
@@ -1907,9 +2037,9 @@ function renderStocks(){
   }
 
   let html=`<div style="display:flex; justify-content:center; gap:10px; margin-bottom:16px">
-    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr)" onclick="openAddStock()">+ Hisse Ekle</button>
-    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr); color:var(--ora); border-color:var(--ora)" onclick="openCompareModal()">⚖️ Karşılaştır</button>
-    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr); color:var(--teal); border-color:var(--teal)" onclick="printReport()">📄 Rapor Al</button>
+    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr)" onclick="openAddStock()"><i data-lucide="plus-circle" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Hisse Ekle</button>
+    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr); color:var(--ora); border-color:var(--ora)" onclick="openCompareModal()"><i data-lucide="scales" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Karşılaştır</button>
+    <button class="btn-save" style="width:auto; padding:8px 20px; font-size:13px; background:var(--bg3); border:1px solid var(--bdr); color:var(--teal); border-color:var(--teal)" onclick="printReport()"><i data-lucide="file-text" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"></i> Rapor Al</button>
   </div>`;
   items.forEach(item=>{
     const pct=(totalVal>0?(item.value/totalVal)*100:0);
@@ -2107,7 +2237,9 @@ function renderDivList(){
   });
   const listEl=document.getElementById('div-list-view');
   if(sorted.length===0){ listEl.innerHTML='<div class="empty-state"><div class="es-icon">💰</div><p>Henüz temettü eklenmedi</p></div>'; return; }
-  listEl.innerHTML=sorted.map(d=>`
+  listEl.innerHTML=sorted.map(d=>{
+    const usdEq = currencyMode==='USD' ? `<div style="font-size:10px; color:var(--t3); margin-top:2px;">(₺${fmtNum(d.netAmount)})</div>` : '';
+    return `
     <div class="div-row">
       <div class="div-row-top">
         <span class="div-ticker">${d.ticker}</span>
@@ -2119,7 +2251,10 @@ function renderDivList(){
         <span>Brüt: ${fmt(d.grossAmount)}</span>
       </div>
       <div class="div-row-bot">
-        <span class="div-net">Net: ${fmt(d.netAmount)}</span>
+        <div>
+          <span class="div-net">Net: ${fmt(d.netAmount)}</span>
+          ${usdEq}
+        </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge ${d.status==='paid'?'paid':'expected'}">${d.status==='paid'?'Ödendi':'Bekleniyor'}</span>
           <div class="row-actions">
@@ -2129,7 +2264,7 @@ function renderDivList(){
         </div>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function renderDivCalendar(){
@@ -2210,6 +2345,7 @@ function renderTransactions(){
     const type=t.type||'buy';
     const bdgCls=type==='buy'?'buy':type==='sell'?'sell':type==='split'?'split':'bonus';
     const price=t.pricePerShare||0;
+    const usdEq = (currencyMode==='USD' && type!=='split' && type!=='bonus') ? `<div style="font-size:10px; color:var(--t3); margin-top:2px;">(₺${fmtNum(t.totalCost)})</div>` : '';
     return `<div class="tx-row">
       <div class="tx-row-top">
         <span class="tx-ticker">${t.ticker} <span style="font-size:12px;color:var(--t2)">${stock?stock.name:''}</span></span>
@@ -2222,7 +2358,10 @@ function renderTransactions(){
         ${t.note?`<span style="color:var(--t3)">${t.note}</span>`:''}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="tx-total" style="color:${type==='sell'?'var(--red)':type==='buy'?'var(--grn)':'var(--t2)'}">${type!=='split'&&type!=='bonus'?(type==='sell'?'-':'+')+''+fmt(t.totalCost):'—'}</span>
+        <div>
+          <span class="tx-total" style="color:${type==='sell'?'var(--red)':type==='buy'?'var(--grn)':'var(--t2)'}">${type!=='split'&&type!=='bonus'?(type==='sell'?'-':'+')+''+fmt(t.totalCost):'—'}</span>
+          ${usdEq}
+        </div>
         <div class="row-actions">
           <button onclick="editTransaction('${t.id}')" title="Düzenle">✏️</button>
           <button onclick="deleteTransaction('${t.id}')" title="Sil">🗑️</button>
@@ -2253,6 +2392,7 @@ function renderAll(){
   if(typeof renderWatchlist === 'function') renderWatchlist();
   if(typeof updateQuickAddStocks === 'function') updateQuickAddStocks();
   if(typeof renderMonthlySummary === 'function') renderMonthlySummary();
+  if(window.lucide) lucide.createIcons();
 }
 
 function updateTxFilter(){
@@ -2953,6 +3093,23 @@ function renderMarket(){
   if(!list) return;
   let html='';
   let upCount=0,downCount=0,totalCount=0;
+  
+  // Trending section (Top 5 gainers)
+  if(!search && filter==='all'){
+    const trending = [...BIST_MD].sort((a,b) => b[2] - a[2]).slice(0, 5);
+    html += '<div class="mkt-section-title">🔥 Trend Hisseler (Günlük)</div>';
+    html += '<div style="display:flex; overflow-x:auto; gap:10px; padding-bottom:12px; scrollbar-width:none;">';
+    trending.forEach(b => {
+      const [ticker, price, chg] = b;
+      html += `
+        <div class="metric-card" style="min-width:120px; padding:10px; border-color:var(--grn); background:rgba(34,197,94,0.05); flex-shrink:0;">
+          <div style="font-weight:800; font-size:13px;">${ticker}</div>
+          <div style="font-size:14px; font-weight:700; margin:4px 0;">₺${price.toFixed(2)}</div>
+          <div style="font-size:11px; font-weight:700; color:var(--grn);">+${chg.toFixed(2)}%</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
 
   // Emtia section
   if(filter==='all'||filter==='emtia'){
@@ -3099,12 +3256,17 @@ function renderWatchlist(){
   portfolio.watchlist.forEach(ticker => {
     const mkt = BIST_MD.find(b => b[0] === ticker);
     if(!mkt) return;
-    const [t, price, chg] = mkt;
+    const [t, price, chg, hi52, lo52] = mkt;
     const chgCls = chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat';
+    
+    let alertHtml = '';
+    if(price <= lo52 * 1.05) alertHtml = '<span class="mini-badge down" style="font-size:8px;">52H DİP</span>';
+    else if(price >= hi52 * 0.95) alertHtml = '<span class="mini-badge up" style="font-size:8px;">52H ZİRVE</span>';
+
     html += `<div class="mkt-row">
       <div style="flex:1">
-        <div class="mkt-ticker">${ticker}</div>
-        <div style="font-size:10px;color:var(--t2)">Piyasa Takibi</div>
+        <div class="mkt-ticker">${ticker} ${alertHtml}</div>
+        <div style="font-size:10px;color:var(--t2)">52H: ₺${lo52.toFixed(1)} – ₺${hi52.toFixed(1)}</div>
       </div>
       <div style="font-size:15px;font-weight:700;margin-right:8px">₺${price.toFixed(2).replace('.',',')}</div>
       <div class="mkt-chg ${chgCls}">${chg>0?'+':''}${chg.toFixed(2)}%</div>
@@ -3201,6 +3363,122 @@ function renderMonthlySummary() {
   });
   
   container.innerHTML = html;
+}
+
+function renderSmartInsights(summary) {
+  const container = document.getElementById('smart-insights');
+  if(!container) return;
+  
+  const sectorData = getSectorItems();
+  const maxSector = sectorData.length > 0 ? sectorData.sort((a,b) => b.value - a.value)[0] : null;
+  const totalVal = summary.totalValue;
+  
+  let insights = [];
+  
+  if(maxSector && totalVal > 0) {
+    const pct = (maxSector.value / totalVal) * 100;
+    if(pct > 40) {
+      insights.push({
+        type: 'warning',
+        icon: 'alert-triangle',
+        title: 'Sektörel Yoğunlaşma',
+        text: `${maxSector.ticker} sektörü portföyünüzün %${pct.toFixed(1)}'ini oluşturuyor. Çeşitlendirme riskinizi azaltabilir.`
+      });
+    } else {
+       insights.push({
+        type: 'success',
+        icon: 'check-circle',
+        title: 'Çeşitlendirme İyi',
+        text: `Sektörel dağılımınız dengeli görünüyor. Risk dağılımı başarılı.`
+      });
+    }
+  }
+  
+  if(summary.totalReturn > 0 && summary.totalRetPct > 15) {
+    insights.push({
+      type: 'info',
+      icon: 'trending-up',
+      title: 'Yüksek Performans',
+      text: `Portföyünüz piyasa ortalamasının üzerinde bir getiri (%${summary.totalRetPct.toFixed(1)}) sağlıyor.`
+    });
+  }
+
+  const { avg } = getMonthlyAvgDiv();
+  if(avg > 0) {
+    const yieldOnCost = summary.totalCost > 0 ? (avg * 12 / summary.totalCost) * 100 : 0;
+    if(yieldOnCost > 10) {
+      insights.push({
+        type: 'success',
+        icon: 'banknote',
+        title: 'Harika Temettü Verimi',
+        text: `Maliyet bazlı yıllık temettü veriminiz %${yieldOnCost.toFixed(1)}. Nakit akışınız oldukça güçlü.`
+      });
+    } else if(yieldOnCost < 3 && summary.totalCost > 5000) {
+      insights.push({
+        type: 'info',
+        icon: 'help-circle',
+        title: 'Temettü Verimi Düşük',
+        text: `Portföyünüzün temettü verimi (%${yieldOnCost.toFixed(1)}) ortalamanın altında. Büyüme odaklı bir strateji izliyor olabilirsiniz.`
+      });
+    }
+  }
+
+  const stockCount = stocks.filter(s => { const d = getStockData(s.id); return d && d.currentLots > 0; }).length;
+  if(stockCount < 5 && summary.totalCost > 2000) {
+    insights.push({
+      type: 'warning',
+      icon: 'layers',
+      title: 'Düşük Çeşitlendirme',
+      text: `Sadece ${stockCount} farklı hisseniz var. Riski dağıtmak için farklı sektörlerden hisse eklemeyi düşünebilirsiniz.`
+    });
+  }
+
+  if(insights.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = insights.map(ins => `
+    <div class="metric-card" style="margin-bottom:10px; border-left:4px solid var(--${ins.type === 'warning' ? 'ora' : (ins.type === 'success' ? 'grn' : 'blue')}); background: rgba(30, 41, 59, 0.4);">
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <div style="color:var(--${ins.type === 'warning' ? 'ora' : (ins.type === 'success' ? 'grn' : 'blue')}); margin-top:2px;">
+          <i data-lucide="${ins.icon}" style="width:20px; height:20px;"></i>
+        </div>
+        <div>
+          <div style="font-size:14px; font-weight:700; margin-bottom:2px;">${ins.title}</div>
+          <div style="font-size:12px; color:var(--t2); line-height:1.4;">${ins.text}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  if(window.lucide) lucide.createIcons();
+}
+
+function runDCA() {
+  if(!currentStockDetail) return;
+  const d = getStockData(currentStockDetail);
+  if(!d) return;
+  
+  const p = parseNum(document.getElementById('dca-price').value);
+  const l = parseNum(document.getElementById('dca-lots').value);
+  const resBox = document.getElementById('dca-result-box');
+  
+  if(p > 0 && l > 0) {
+    resBox.style.display = 'block';
+    const newLots = d.currentLots + l;
+    const extraCost = p * l;
+    const newTotalCost = d.totalBuyCost - d.totalSellCost + extraCost; // simplified
+    // Better calculation for cost: (OldValue + NewValue) / TotalLots
+    // but usually users want (OldTotalBuyCost - SellsCost + NewBuyCost) / NewLots
+    const newAvg = (d.currentLots * d.avgCostPerShare + p * l) / newLots;
+    
+    document.getElementById('dca-new-lots').textContent = fmtNum(newLots, 0);
+    document.getElementById('dca-new-avg').textContent = fmt(newAvg);
+    document.getElementById('dca-extra-cost').textContent = fmt(extraCost);
+  } else {
+    resBox.style.display = 'none';
+  }
 }
 
 function openCompareModal(){
