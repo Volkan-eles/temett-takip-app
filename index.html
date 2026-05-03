@@ -16,7 +16,7 @@
   const SB_KEY = 'sb_publishable_H1hnkpolit7DgO7vb7DHtA_8X3p9WLf';
   let supabase;
   try {
-    supabase = supabase.createClient(SB_URL, SB_KEY);
+    supabase = window.supabase.createClient(SB_URL, SB_KEY);
   } catch(e) {
     console.error("Supabase load error:", e);
   }
