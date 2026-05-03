@@ -53,14 +53,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
 /* top bar */
-#topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-shrink:0;background:var(--bg)}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-shrink:0;background:var(--bg);position:relative;z-index:100}
 #portfolio-name-wrap{display:flex;align-items:center;gap:6px;cursor:pointer}
 #portfolio-name{font-size:20px;font-weight:700}
 #topbar-right{display:flex;align-items:center;gap:12px}
 .icon-btn{background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:.2s}
 .icon-btn:hover{color:var(--t1);background:var(--bg3)}
 /* tabs */
-#tabbar{display:flex;overflow-x:auto;padding:4px 16px 8px;gap:4px;flex-shrink:0;scrollbar-width:none}
+#tabbar{display:flex;overflow-x:auto;padding:4px 16px 8px;gap:4px;flex-shrink:0;scrollbar-width:none;position:relative;z-index:100}
 #tabbar::-webkit-scrollbar{display:none}
 .tab-btn{flex-shrink:0;padding:8px 20px;border:none;border-radius:100px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;background:var(--bg2);color:var(--t2)}
 .tab-btn.active{background:var(--teal);color:#fff;font-weight:600}
@@ -294,7 +294,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
 .alarm-dot.down{background:var(--red);box-shadow:0 0 5px var(--red)}
 .stock-row:hover,.tx-row:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.25);transition:.2s}
 /* auth advanced */
-#login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e293b, #0f172a); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+#login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e293b, #0f172a); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
+#login-screen[style*="display: none"] { opacity: 0; visibility: hidden; pointer-events: none; }
 #login-screen .logo { font-size: 64px; margin-bottom: 24px; filter: drop-shadow(0 0 20px #14b8a655); animation: float 3s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 #login-screen h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -332,9 +333,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
     <span id="portfolio-name">Portföyüm</span>
     <span style="color:var(--t2);font-size:18px">⌄</span>
   </div>
-  <div id="topbar-right">
+  <div id="topbar-right" style="position:relative; z-index:101">
     <button class="icon-btn" onclick="openModal('prices-overlay')" title="Fiyat Güncelle">💱</button>
-    <button class="icon-btn" onclick="document.querySelectorAll('.tab-btn')[4].click()" title="Ayarlar">⚙️</button>
+    <button class="icon-btn" onclick="document.querySelectorAll('.tab-btn')[5].click()" title="Ayarlar">⚙️</button>
   </div>
 </div>
 
@@ -706,13 +707,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
     </div>
     <div class="form-group">
       <label>Lot Adedi</label>
-      <input type="number" id="tx-lots" min="0.01" step="0.01" placeholder="10" oninput="calcTxTotal()">
+      <input type="tel" id="tx-lots" placeholder="10" oninput="calcTxTotal()">
     </div>
   </div>
   <div class="form-row">
     <div class="form-group" id="tx-price-group">
       <label>Hisse Başı Fiyat (₺)</label>
-      <input type="number" id="tx-price" min="0" step="0.01" placeholder="142,50" oninput="calcTxTotal()">
+      <input type="tel" id="tx-price" placeholder="142,50" oninput="calcTxTotal()">
     </div>
     <div class="form-group">
       <label>Toplam Tutar</label>
@@ -756,11 +757,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
   <div class="form-row">
     <div class="form-group">
       <label>Hisse Başı Temettü (₺)</label>
-      <input type="number" id="div-per-share" min="0" step="0.0001" placeholder="12,40" oninput="calcDivAmounts()">
+      <input type="tel" id="div-per-share" placeholder="12,40" oninput="calcDivAmounts()">
     </div>
     <div class="form-group">
       <label>Lot Adedi</label>
-      <input type="number" id="div-lots" min="0.01" step="0.01" placeholder="10" oninput="calcDivAmounts()">
+      <input type="tel" id="div-lots" placeholder="10" oninput="calcDivAmounts()">
     </div>
   </div>
   <div class="form-row">
@@ -1085,7 +1086,7 @@ function fmt(n,dec=2,forceTRY=false){
   const abs=Math.abs(val);
   const str=abs.toFixed(dec).replace('.',',');
   const parts=str.split(',');
-  parts[0]=parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g,'.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   return sym+parts.join(',');
 }
 function fmtNum(n,dec=2){
@@ -1102,6 +1103,12 @@ function fmtDate(ds){
 }
 function today(){ return new Date().toISOString().split('T')[0] }
 function currentYear(){ return new Date().getFullYear() }
+
+function parseNum(v){
+  if(typeof v === 'number') return v;
+  if(!v) return 0;
+  return parseFloat(v.toString().replace(',','.')) || 0;
+}
 
 // ─── STORAGE ──────────────────────────────────────────────
 let currentUser = null;
@@ -1867,7 +1874,7 @@ function showStockDetail(stockId){
   
   document.getElementById('sd-grid').innerHTML=`
     <div class="sd-card">
-      <div class="sd-item"><label>Portföydeki Pay</label><span style="font-weight:800">${fmtNum(d.currentLots,2)} lot</span></div>
+      <div class="sd-item"><label>Portföydeki Pay</label><span style="font-weight:800">${fmtNum(d.currentLots,0)} lot</span></div>
       <div class="sd-item"><label>Ortalama Maliyet</label><span style="color:var(--blue); font-weight:800">${fmt(d.avgCostPerShare)}</span></div>
       <div class="sd-item"><label>Güncel Değer</label><span style="font-weight:800">${fmt(d.currentValue)}</span></div>
       <div class="sd-item"><label>Kâr / Zarar</label><span style="color:${d.potentialPnl>=0?'var(--grn)':'var(--red)'}; font-weight:800">${(d.potentialPnl>=0?'+':'')+fmt(d.potentialPnl)} (${d.potentialPnlPct.toFixed(1)}%)</span></div>
@@ -2246,16 +2253,16 @@ function setTxType(t){
   if(t==='split'||t==='bonus') document.getElementById('tx-total-calc').textContent='—';
 }
 function calcTxTotal(){
-  const lots=parseFloat(document.getElementById('tx-lots').value)||0;
-  const price=parseFloat(document.getElementById('tx-price').value)||0;
+  const lots=parseNum(document.getElementById('tx-lots').value);
+  const price=parseNum(document.getElementById('tx-price').value);
   const total=lots*price*100;
   document.getElementById('tx-total-calc').textContent=fmt(total);
 }
 function saveTransaction(){
   const stockId=document.getElementById('tx-stock-sel').value;
   const date=document.getElementById('tx-date').value;
-  const lots=parseFloat(document.getElementById('tx-lots').value)||0;
-  const price=parseFloat(document.getElementById('tx-price').value)||0;
+  const lots=parseNum(document.getElementById('tx-lots').value);
+  const price=parseNum(document.getElementById('tx-price').value);
   const note=document.getElementById('tx-note').value.trim();
   if(!stockId||!date||lots<=0){ toast('Lütfen tüm alanları doldurun!'); return; }
   if((txType==='buy'||txType==='sell')&&price<=0){ toast('Fiyat sıfırdan büyük olmalı!'); return; }
@@ -2318,8 +2325,8 @@ function onDivStockChange(){
   calcDivAmounts();
 }
 function calcDivAmounts(){
-  const perShare=parseFloat(document.getElementById('div-per-share').value)||0;
-  const lots=parseFloat(document.getElementById('div-lots').value)||0;
+  const perShare=parseNum(document.getElementById('div-per-share').value);
+  const lots=parseNum(document.getElementById('div-lots').value);
   const gross=perShare*lots*100;
   const net=gross*0.9;
   document.getElementById('div-gross-calc').textContent=fmt(gross);
@@ -2329,8 +2336,8 @@ function saveDividend(){
   const stockId=document.getElementById('div-stock-sel').value;
   const paymentDate=document.getElementById('div-pay-date').value;
   const exDate=document.getElementById('div-ex-date').value;
-  const perShare=parseFloat(document.getElementById('div-per-share').value)||0;
-  const lots=parseFloat(document.getElementById('div-lots').value)||0;
+  const perShare=parseNum(document.getElementById('div-per-share').value);
+  const lots=parseNum(document.getElementById('div-lots').value);
   const status=document.getElementById('div-status').value;
   if(!stockId||!paymentDate||perShare<=0||lots<=0){ toast('Lütfen tüm alanları doldurun!'); return; }
   const stock=stocks.find(s=>s.id===stockId);
