@@ -1116,6 +1116,11 @@ async function handleAuth(type) {
 }
 
 async function handleGoogleAuth() {
+  if (window.location.protocol === 'file:') {
+    alert('Google ile giriş yapmak için uygulamayı bir web sunucusu üzerinden (localhost veya web sitesi) açmanız gerekmektedir. Dosyayı doğrudan tarayıcıda açtığınızda Google güvenli yönlendirme yapamaz.');
+    return;
+  }
+  
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
