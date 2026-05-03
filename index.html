@@ -656,8 +656,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);displa
       </div>
       <div style="font-size:24px">🌓</div>
     </div>
-  </div>
-
   <div class="sec-title">Güvenlik</div>
   <div class="cards-2col">
     <div class="metric-card" onclick="togglePin()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; grid-column:span 2">
@@ -2136,21 +2134,32 @@ function renderDivList(){
 
 function renderDivCalendar(){
   const calEl=document.getElementById('div-cal-view');
+  if(!calEl) return;
+  
   const sorted=[...dividends].filter(d=>d.exDate||d.paymentDate).sort((a,b)=>{
     const ad=a.exDate||a.paymentDate; const bd=b.exDate||b.paymentDate;
     return bd.localeCompare(ad);
   });
+  
+  if(sorted.length===0){
+    calEl.innerHTML='<div class="empty-state"><div class="es-icon">📅</div><p>Takvimde gösterilecek tarihli temettü kaydı bulunamadı. Temettü eklerken tarih girmeyi unutmayın.</p></div>';
+    return;
+  }
+  
   const byMonth={};
   for(const d of sorted){
     const date=d.exDate||d.paymentDate;
-    const [y,m]=date.split('-');
-    const key=`${y}-${m}`;
+    const parts=date.split('-');
+    if(parts.length < 2) continue;
+    const key=`${parts[0]}-${parts[1]}`;
     if(!byMonth[key]) byMonth[key]=[];
     byMonth[key].push(d);
   }
+  
   const now=new Date();
   const months=Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
   const MONTHS_TR=['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  
   calEl.innerHTML=months.map(mk=>{
     const [y,m]=mk.split('-');
     const items=byMonth[mk];
