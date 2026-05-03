@@ -3128,25 +3128,25 @@ function renderMonthlySummary() {
   const container = document.getElementById('monthly-summary-container');
   if(!container) return;
   
-  // Aggregate data by YYYY-MM
   const monthsMap = {};
   
   // Transactions (Buys)
   transactions.forEach(t => {
     if(t.type !== 'buy') return;
     const m = t.date.substring(0, 7);
-    if(!monthsMap[m]) monthsMap[m] = { invest: 0, dividend: 0 };
+    if(!monthsMap[m]) monthsMap[m] = { invest: 0, paid: 0, expected: 0 };
     monthsMap[m].invest += t.totalCost;
   });
   
-  // Dividends (Paid)
+  // Dividends (Paid & Expected)
   dividends.forEach(d => {
-    if(d.status !== 'paid') return;
     const date = d.paymentDate || d.exDate;
     if(!date) return;
     const m = date.substring(0, 7);
-    if(!monthsMap[m]) monthsMap[m] = { invest: 0, dividend: 0 };
-    monthsMap[m].dividend += d.netAmount;
+    if(!monthsMap[m]) monthsMap[m] = { invest: 0, paid: 0, expected: 0 };
+    
+    if(d.status === 'paid') monthsMap[m].paid += d.netAmount;
+    else monthsMap[m].expected += d.netAmount;
   });
   
   const sortedMonths = Object.keys(monthsMap).sort().reverse();
@@ -3157,25 +3157,35 @@ function renderMonthlySummary() {
   }
   
   let html = '';
+  const nowStr = today().substring(0, 7);
+  
   sortedMonths.forEach(m => {
     const [y, mm] = m.split('-');
     const data = monthsMap[m];
     const monthName = MONTHS_TR[parseInt(mm)];
+    const isFuture = m > nowStr;
     
     html += `
-      <div class="metric-card" style="margin-bottom:12px;">
+      <div class="metric-card" style="margin-bottom:12px; border-color:${isFuture ? 'var(--ora)' : 'var(--bdr)'};">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <div style="font-weight:800; color:var(--teal);">${monthName} ${y}</div>
-          <div style="font-size:11px; color:var(--t3); font-weight:700;">Aylık Rapor</div>
+          <div style="font-weight:800; color:var(--teal);">${monthName} ${y} ${isFuture ? '⏳' : ''}</div>
+          <div style="font-size:11px; color:${isFuture ? 'var(--ora)' : 'var(--t3)'}; font-weight:700;">${isFuture ? 'Gelecek Planı' : 'Geçmiş Kayıt'}</div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div style="background:var(--bg3); padding:10px; border-radius:10px;">
-            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">📥 Toplam Alım</div>
+          <div style="background:var(--bg3); padding:10px; border-radius:10px; grid-column: ${data.invest > 0 ? 'span 1' : 'span 2'}; ${data.invest === 0 ? 'display:none' : ''}">
+            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">📥 Aylık Alım</div>
             <div style="font-size:14px; font-weight:700; color:var(--blue);">${fmt(data.invest)}</div>
           </div>
-          <div style="background:var(--bg3); padding:10px; border-radius:10px;">
-            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">💰 Temettü Geliri</div>
-            <div style="font-size:14px; font-weight:700; color:var(--grn);">${fmt(data.dividend)}</div>
+          <div style="background:var(--bg3); padding:10px; border-radius:10px; grid-column: ${data.invest > 0 ? 'span 1' : 'span 2'}">
+            <div style="font-size:10px; color:var(--t2); margin-bottom:4px;">💰 Temettü (Ödenen)</div>
+            <div style="font-size:14px; font-weight:700; color:var(--grn);">${fmt(data.paid)}</div>
+          </div>
+          <div style="background:var(--bg3); padding:10px; border-radius:10px; grid-column: span 2; border: 1px dashed ${data.expected > 0 ? 'var(--ora)' : 'transparent'};">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:10px; color:var(--t2);">⏳ Beklenen Temettü</div>
+              ${data.expected > 0 ? '<span class="badge expected" style="font-size:9px">Takvimde</span>' : ''}
+            </div>
+            <div style="font-size:14px; font-weight:700; color:var(--ora);">${fmt(data.expected)}</div>
           </div>
         </div>
       </div>`;
